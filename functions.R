@@ -26,7 +26,7 @@ get_skels_without_annot <- function(pid, annotationname = "") {
 
 
 # crop substack ----------------------------------------------------------------
-crop_catmaid <- function(tagname,
+crop_substack <- function(tagname,
                          half_bb_size_x, half_bb_size_y, half_bb_size_z,
                          zoomlevel,
                          dest_dir,
