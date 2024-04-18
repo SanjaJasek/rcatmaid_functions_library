@@ -24,14 +24,15 @@ get_skids_with_annot <- function(pid, annotations) {
 get_skels_without_annot <- function(pid, annotationname = "") {
   skids <- unlist(catmaid_fetch(path = paste("/", pid, "/skeletons/", sep="")))
   # I'm using the above method of getting all skids instead of catmaid_skids(".*", pid)
-  # because the above method is 100x faster (literally, ~0.06s vs ~6.05s for 988 skeletons)
+  # because the above method is 100x faster (~0.06s vs ~6.05s for 988 skeletons)
+  # it is not posible to omit the above line because 
+  # catmaid_get_annotations_for_skeletons(".*", pid) doesn't return skeletons with no annotations at all
   skids_with_annot <- catmaid_get_annotations_for_skeletons(skids, pid = pid) |>
     filter(grepl(annotationname, annotation)) |> select(skid) |> 
     pull() |> unique()
   skids_without_annot <- setdiff(skids, skids_with_annot)
   return(skids_without_annot)
 }
-
 
 
 # crop substack ----------------------------------------------------------------
