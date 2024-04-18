@@ -2,7 +2,7 @@ library(catmaid)
 library(data.table)
 library(tidyverse)
 
-# get list of annotations in project -------------------------------------------
+# get list of cell types in project --------------------------------------------
 # assumes they have an annotation starting with "celltype:"
 get_celltypes <- function(pid) {
   annotations <- catmaid_get_annotationlist(pid = 35)
@@ -11,11 +11,20 @@ get_celltypes <- function(pid) {
   return(celltypes)
 }
 
+# get skids with multiple annotations ------------------------------------------
+# note that second argument needs a vector if you are using more than 1 annotation!
+get_skids_with_annot <- function(pid, annotations) {
+  skids_list <- lapply(annotations, catmaid_skids, pid=35)
+  intersection <- Reduce(intersect,skids_list)
+  return(intersection)
+}
 
 # find skeletons without annotation --------------------------------------------
 # if used without annotation name, returns skids without any annotation
 get_skels_without_annot <- function(pid, annotationname = "") {
   skids <- unlist(catmaid_fetch(path = paste("/", pid, "/skeletons/", sep="")))
+  # I'm using the above method of getting all skids instead of catmaid_skids(".*", pid)
+  # because the above method is 100x faster (literally, ~0.06s vs ~6.05s for 988 skeletons)
   skids_with_annot <- catmaid_get_annotations_for_skeletons(skids, pid = pid) |>
     filter(grepl(annotationname, annotation)) |> select(skid) |> 
     pull() |> unique()
@@ -41,8 +50,6 @@ crop_substack <- function(tagname,
   for (i in seq_along(search_results)) {
     if (search_results[[i]]$name == tagname && search_results[[i]]$class_name == "label") {
       for (j in seq_along(search_results[[i]]$nodes)) {
-        #print("adding treenode id")
-        #print(search_results[[i]]$nodes[[j]]$id)
         ids <- c(ids, search_results[[i]]$nodes[[j]]$id)
         x <- search_results[[i]]$nodes[[j]]$x
         y <- search_results[[i]]$nodes[[j]]$y
@@ -64,8 +71,6 @@ crop_substack <- function(tagname,
         )
       }
       for (j in seq_along(search_results[[i]]$connectors)) {
-        #print("adding connector id")
-        #print(search_results[[i]]$connector[[j]]$id)
         ids <- c(ids, search_results[[i]]$connectors[[j]]$id)
         x <- search_results[[i]]$connectors[[j]]$x
         y <- search_results[[i]]$connectors[[j]]$y
@@ -88,7 +93,7 @@ crop_substack <- function(tagname,
       }
     }
   }
-  print("checkpoint 1")
+  
   if (length(ids) == 0) {
     print(paste("No treenodes or connectors tagged with", tagname, "were found"))
     return()
@@ -105,10 +110,6 @@ crop_substack <- function(tagname,
   # download stacks ---------------------------------------------------------
   # the exact file names are needed for download,
   # to get them we need to check messages from the server
-  # originally I was checking which messages are new, and downloading those
-  # but this could lead to false positives
-  # so I decided that's it's probably safe to download the last n messages
-  # where n is the number of jobs
   
   # It would be cool if I can put the synapse ID as file name,
   # but it's not guaranteed that jobs will return in the same order
@@ -158,10 +159,4 @@ get_syn_polyadicity <- function(pid) {
   n_post |> as.numeric() |> summary()
 }
 
-# get skids with multiple annotations
-# note that second argument needs a vector if you are using more than 1 annotation!
-get_skids_with_annot <- function(pid, annotations) {
-  skids_list <- lapply(annotations, catmaid_skids, pid=35)
-  intersection <- Reduce(intersect,skids_list)
-  return(intersection)
-}
+
