@@ -157,3 +157,11 @@ get_syn_polyadicity <- function(pid) {
   
   n_post |> as.numeric() |> summary()
 }
+
+# get skids with multiple annotations
+# note that second argument needs a vector if you are using more than 1 annotation!
+get_skids_with_annot <- function(pid, annotations) {
+  skids_list <- lapply(annotations, catmaid_skids, pid=35)
+  intersection <- Reduce(intersect,skids_list)
+  return(intersection)
+}
