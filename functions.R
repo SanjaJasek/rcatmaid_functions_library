@@ -79,7 +79,7 @@ crop_substack <- function(tagname,
         catmaid_fetch(
           path = paste(pid, "/crop/", sep = ""),
           body = list(
-            stack_ids=21,
+            stack_ids=stackid,
             min_x=x-half_bb_size_x,
             min_y=y-half_bb_size_y,
             min_z=z-half_bb_size_z,
