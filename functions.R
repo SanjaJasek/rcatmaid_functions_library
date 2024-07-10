@@ -161,3 +161,37 @@ get_syn_polyadicity <- function(pid) {
 }
 
 
+# plotting multinucleated cells ------------------------------------------------
+soma_positions <- function(nneuron) {
+  soma_treenodes <- nneuron$tags$soma
+  if (is.null(soma_treenodes)) {
+    print("There are no treenodes with soma tag")
+    return()
+  }
+  soma_info <- function(soma_treenode) {
+    index <- which(nneuron$d$PointNo == soma_treenode)
+    x <- nneuron$d$X[[index]]
+    y <- nneuron$d$Y[[index]]
+    z <- nneuron$d$Z[[index]]
+    radius <- nneuron$d$W[[index]]
+    return(data.frame(x=x, y=y, z=z, radius=radius))
+  }
+  somapos <- ldply(soma_treenodes, soma_info)
+  return(somapos)
+}
+
+plot_multinucleated_cell <- function(nneuron,
+                                     sigma = 1, 
+                                     color = "gray",  lwd = 1) {
+  smoothed_neuron <- smooth_neuron(nneuron, sigma = sigma)
+  somapos <- soma_positions(nneuron)
+  plot3d(smoothed_neuron, lwd = lwd, color = color)
+  for (i in seq(nrow(somapos))) {
+    spheres3d(x = somapos$x[[i]], 
+              y = somapos$y[[i]], 
+              z = somapos$z[[i]],
+              radius = somapos$radius[[i]],
+              color = color)
+  }
+}
+
