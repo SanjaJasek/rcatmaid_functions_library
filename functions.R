@@ -212,12 +212,12 @@ segments_between_tags <- function(nneuron, tag1, tag2) {
     tag2_matches_indices <- match(tag2_ranks, proximal_points)
     tag2_matches_indices <- tag2_matches_indices[!is.na(tag2_matches_indices)]
     # get only first match
-    tag2_match_index <- tag2_matches_indices[[1]]
+    tag2_match_index <- sort(tag2_matches_indices)[[1]]
     segment_points <- proximal_points[1:tag2_match_index]
     segment_tree <- subset(nneuron, segment_points)
     #print(xyzmatrix(segment_tree))
     segments_neuronlist <- c(segments_neuronlist, as.neuronlist(segment_tree))
   }
-  return(segments_neuronlist)
+  return(as.neuronlist(segments_neuronlist))
 }
 
