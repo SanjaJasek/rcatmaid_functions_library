@@ -195,61 +195,29 @@ plot_multinucleated_cell <- function(nneuron,
   }
 }
 
-segments_between_tags <- function(nneuron, tag1, tag2) {
-  # this assumes we only want the segments between each tag1 to its closest downstream tag2
-  swc_in <- nneuron$d
-  tag1_ids <- nneuron$tags[[tag1]]
-  tag2_ids <- nneuron$tags[[tag2]]
-  swcs_out <- list()
-  i=1
-  for (treenode_id in tag1_ids) {
-    swc_out <- data.frame()
-    while (!(treenode_id %in% tag2_ids)) {
-      index <- match(treenode_id, swc_in$PointNo)
-      parent_id <- swc_in$Parent[[index]]
-      if (parent_id == -1) {
-        # if root reached before other tag, return empty data frame
-        swc_out <- data.frame()
-        stop()
-      }
-      swc_out <- rbind(swc_out, swc_in[index,])
-      index_parent <- match(parent_id, swc_in$PointNo)
-      treenode_id <- parent_id
-    }
-    print(i)
-    print(swc_out)
-    swcs_out[[i]] <- list(swc_out)
-    i = i+1
-  }
-  swcs_out <- flatten(swcs_out)
-  return(swcs_out)
-}
 
 segments_between_tags <- function(nneuron, tag1, tag2) {
   # this assumes we only want the segments between each tag1 to its closest downstream tag2
   segments_neuronlist <- neuronlist()
-  swc <- nneuron$d
   ng <- as.ngraph(nneuron)
   tag1_ids <- nneuron$tags[[tag1]]
   tag2_ids <- nneuron$tags[[tag2]]
-  tag1_o <- match(tag1_ids, swc$PointNo)
-  tag2_o <- match(tag2_ids, swc$PointNo)
-  for (tag1_index in tag1_o) {
-    proximal_points <- igraph::graph.dfs(ng, 
-                                         root=tag1_index, 
+  tag1_ranks <- match(tag1_ids, swc$PointNo)
+  tag2_ranks <- match(tag2_ids, swc$PointNo)
+  for (tag1_rank in tag1_ranks) {
+    proximal_points <- igraph::graph.dfs(ng,
+                                         root=tag1_rank, 
                                          unreachable=FALSE,
                                          mode='in')$order
-    tag2_matches <- match(tag2_o, proximal_points)
-    tag2_matches <- tag2_matches[!is.na(tag2_matches)]
+    tag2_matches_indices <- match(tag2_ranks, proximal_points)
+    tag2_matches_indices <- tag2_matches_indices[!is.na(tag2_matches_indices)]
     # get only first match
-    tag2_match <- tag2_matches[[1]]
-    tag2_match_index <- match(tag2_match, proximal_points)
+    tag2_match_index <- tag2_matches_indices[[1]]
     segment_points <- proximal_points[1:tag2_match_index]
     segment_tree <- subset(nneuron, segment_points)
-    segments_neuronlist <- c(segments_neuronlist, segment_tree)
+    #print(xyzmatrix(segment_tree))
+    segments_neuronlist <- c(segments_neuronlist, as.neuronlist(segment_tree))
   }
-  
-
-  return(swcs_out)
+  return(segments_neuronlist)
 }
 
