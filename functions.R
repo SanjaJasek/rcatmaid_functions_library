@@ -202,8 +202,8 @@ segments_between_tags <- function(nneuron, tag1, tag2) {
   ng <- as.ngraph(nneuron)
   tag1_ids <- nneuron$tags[[tag1]]
   tag2_ids <- nneuron$tags[[tag2]]
-  tag1_ranks <- match(tag1_ids, swc$PointNo)
-  tag2_ranks <- match(tag2_ids, swc$PointNo)
+  tag1_ranks <- match(tag1_ids, nneuron$d$PointNo)
+  tag2_ranks <- match(tag2_ids, nneuron$d$PointNo)
   for (tag1_rank in tag1_ranks) {
     proximal_points <- igraph::graph.dfs(ng,
                                          root=tag1_rank, 
@@ -211,11 +211,16 @@ segments_between_tags <- function(nneuron, tag1, tag2) {
                                          mode='in')$order
     tag2_matches_indices <- match(tag2_ranks, proximal_points)
     tag2_matches_indices <- tag2_matches_indices[!is.na(tag2_matches_indices)]
-    # get only first match
-    tag2_match_index <- sort(tag2_matches_indices)[[1]]
-    segment_points <- proximal_points[1:tag2_match_index]
-    segment_tree <- subset(nneuron, segment_points)
-    #print(xyzmatrix(segment_tree))
+    if (length(tag2_matches_indices) == 0) {
+      segment_tree <- neuronlist()
+    }
+    else {
+      # get only first match
+      tag2_match_index <- sort(tag2_matches_indices)[[1]]
+      segment_points <- proximal_points[1:tag2_match_index]
+      segment_tree <- subset(nneuron, segment_points)
+      #print(xyzmatrix(segment_tree))
+    }
     segments_neuronlist <- c(segments_neuronlist, as.neuronlist(segment_tree))
   }
   return(as.neuronlist(segments_neuronlist))
