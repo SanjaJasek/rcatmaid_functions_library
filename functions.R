@@ -228,7 +228,6 @@ segments_between_tags <- function(nneuron, tag1, tag2) {
         tagname <- names(nneuron$tags)[[i]]
         tag_trids <- nneuron$tags[[i]]
         tag_trids_subset <- intersect(tag_trids, segment_neuronlist$d$PointNo)
-        print(tag_trids_subset)
         if (length(tag_trids_subset) == 0) {
           next
         }
