@@ -212,16 +212,36 @@ segments_between_tags <- function(nneuron, tag1, tag2) {
     tag2_matches_indices <- match(tag2_ranks, proximal_points)
     tag2_matches_indices <- tag2_matches_indices[!is.na(tag2_matches_indices)]
     if (length(tag2_matches_indices) == 0) {
-      segment_tree <- neuronlist()
+      segment_neuronlist <- neuronlist()
     }
     else {
       # get only first match
       tag2_match_index <- sort(tag2_matches_indices)[[1]]
       segment_points <- proximal_points[1:tag2_match_index]
-      segment_tree <- subset(nneuron, segment_points)
+      segment_neuronlist <- subset(nneuron, segment_points)
       #print(xyzmatrix(segment_tree))
+      # add information from original neuron
+      segment_neuronlist <- c(segment_neuronlist, skid=nneuron$skid)
+      # add back tags
+      tags_to_add <- list()
+      for (i in seq_along(nneuron$tags)) {
+        tagname <- names(nneuron$tags)[[i]]
+        tag_trids <- nneuron$tags[[i]]
+        tag_trids_subset <- intersect(tag_trids, segment_neuronlist$d$PointNo)
+        print(tag_trids_subset)
+        if (length(tag_trids_subset) == 0) {
+          next
+        }
+        tags_to_add <- append(tags_to_add, tag_trids_subset)
+        names(tags_to_add)[[length(tags_to_add)]] <- tagname
+      }
+      if (length(tags_to_add) != 0) {
+        segment_neuronlist[[length(segment_neuronlist)+1]] <- as.list(tags_to_add)
+        names(segment_neuronlist)[[length(segment_neuronlist)]] <- "tags"
+      }
     }
-    segments_neuronlist <- c(segments_neuronlist, as.neuronlist(segment_tree))
+
+    segments_neuronlist <- c(segments_neuronlist, as.neuronlist(segment_neuronlist))
   }
   return(as.neuronlist(segments_neuronlist))
 }
