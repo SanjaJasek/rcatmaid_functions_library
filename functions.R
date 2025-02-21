@@ -5,7 +5,7 @@ library(tidyverse)
 # get list of cell types in project --------------------------------------------
 # assumes they have an annotation starting with "celltype:"
 get_celltypes <- function(pid) {
-  annotations <- catmaid_get_annotationlist(pid = 35)
+  annotations <- catmaid_get_annotationlist(pid = pid)
   celltypes <- annotations$annotations |> filter(grepl("^celltype:", name)) |>
     select(name) |> pull() |> sub(pattern="^celltype:", replacement="")
   return(celltypes)
@@ -14,7 +14,7 @@ get_celltypes <- function(pid) {
 # get skids with multiple annotations ------------------------------------------
 # note that second argument needs a vector if you are using more than 1 annotation!
 get_skids_with_annot <- function(pid, annotations) {
-  skids_list <- lapply(annotations, catmaid_skids, pid=35)
+  skids_list <- lapply(annotations, catmaid_skids, pid=pid)
   intersection <- Reduce(intersect,skids_list)
   return(intersection)
 }
