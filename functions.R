@@ -5,7 +5,7 @@ library(tidyverse)
 # get list of cell types in project --------------------------------------------
 # assumes they have an annotation starting with "celltype:"
 get_celltypes <- function(pid) {
-  annotations <- catmaid_get_annotationlist(pid = pid)
+  annotations <- catmaid_get_annotationlist(pid = 35)
   celltypes <- annotations$annotations |> filter(grepl("^celltype:", name)) |>
     select(name) |> pull() |> sub(pattern="^celltype:", replacement="")
   return(celltypes)
@@ -14,7 +14,7 @@ get_celltypes <- function(pid) {
 # get skids with multiple annotations ------------------------------------------
 # note that second argument needs a vector if you are using more than 1 annotation!
 get_skids_with_annot <- function(pid, annotations) {
-  skids_list <- lapply(annotations, catmaid_skids, pid=pid)
+  skids_list <- lapply(annotations, catmaid_skids, pid=35)
   intersection <- Reduce(intersect,skids_list)
   return(intersection)
 }
@@ -182,16 +182,19 @@ soma_positions <- function(nneuron) {
 
 plot_multinucleated_cell <- function(nneuron,
                                      sigma = 1, 
-                                     color = "gray",  lwd = 1) {
+                                     color = "gray",
+                                     lwd = 1,
+                                     alpha = 1) {
   smoothed_neuron <- smooth_neuron(nneuron, sigma = sigma)
   somapos <- soma_positions(nneuron)
-  plot3d(smoothed_neuron, lwd = lwd, color = color)
+  plot3d(smoothed_neuron, lwd = lwd, color = color, alpha = alpha)
   for (i in seq(nrow(somapos))) {
     spheres3d(x = somapos$x[[i]], 
               y = somapos$y[[i]], 
               z = somapos$z[[i]],
-              radius = somapos$radius[[i]],
-              color = color)
+              radius = somapos$radius[[i]]/2,
+              color = color,
+              alpha = alpha)
   }
 }
 
